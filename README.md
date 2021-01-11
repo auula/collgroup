@@ -1,2 +1,2 @@
 # collectGroup
-Waiting group for collecting goroutine information.
+Wait group for collecting goroutine information.
