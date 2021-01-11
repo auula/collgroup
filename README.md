@@ -3,7 +3,7 @@ Wait group for collecting goroutine information.
 
 ## 前 言
 
->在go语言`waitGroup`和`errGroup`都是用来控制`goroutine`的并发的方式，前者只能等待所有`goroutine`执行完成之后再执行`Wait()`函数后面的代码并且不能捕获运行中的错误，而后者能解决在`goroutine`运行出现的错误还能继续，但是只能捕获到第一次出错的`goroutine`的错误信息。有时候我们需要让多个协程在其中几个出错的时候还能正常运行其他的协程，并且还能捕获到出错协程的相关信息，前面2个`waitGroup`和`errGroup`都不能够满足我们的需求，所以打算自己手实现一个`collectGroup`。
+>在go语言`waitGroup`和`errGroup`都是用来控制`goroutine`的并发的方式，前者只能等待所有`goroutine`执行完成之后再执行`Wait()`函数后面的代码并且不能捕获运行中的错误，而后者能解决在`goroutine`运行出现的错误还能继续，但是只能捕获到第一次出错的`goroutine`的错误信息。有时候我们需要让多个协程在其中几个出错的时候还能正常运行其他的协程，并且还能捕获到出错协程的相关信息，前面2个`waitGroup`和`errGroup`都不能够满足我们的需求，所以打算自己动手实现一个`collectGroup`。
 
 
 ## 需求分析
