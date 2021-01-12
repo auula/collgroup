@@ -1,4 +1,4 @@
-# collGroup
+# collgroup
 Wait group for collecting goroutine information.
 
 ## 前 言
