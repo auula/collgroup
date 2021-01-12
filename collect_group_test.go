@@ -63,7 +63,7 @@ func TestCollGroup(t *testing.T) {
 	}
 }
 
-func TestWithContext(t *testing.T) {
+func TestPprof(t *testing.T) {
 	if true {
 		file, err := os.Create("./cpu.pprof")
 		if err != nil {
@@ -74,7 +74,7 @@ func TestWithContext(t *testing.T) {
 		defer pprof.StopCPUProfile()
 	}
 	for i := 0; i < 8; i++ {
-		go Test(t)
+		go TestWithContext(t)
 	}
 	time.Sleep(5 * time.Second)
 	if true {
@@ -89,7 +89,7 @@ func TestWithContext(t *testing.T) {
 
 }
 
-func Test(t *testing.T) {
+func TestWithContext(t *testing.T) {
 	// 创建一个errGroup
 	group, ctx := WithContext(context.Background())
 	// 模拟多任务

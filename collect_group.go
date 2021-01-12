@@ -35,7 +35,7 @@ func WithContext(ctx context.Context) (*Group, context.Context) {
 func (g *Group) Go(id string, fn func() error) {
 	g.wg.Add(1)
 	go func() {
-		id := id
+		//id := id
 		defer g.wg.Done()
 		if err := fn(); err != nil {
 			// 写锁必须加锁 不然 fatal error: concurrent map writes
