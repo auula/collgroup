@@ -33,20 +33,24 @@ Go 函数 可以帮你起一个协程运行你的函数，需要你传一个`gor
 
 ```go
 func (g *Group) Go(id string, fn func() error) {
-    g.wg.Add(1)
-    go func() {
-        id := id
-        defer g.wg.Done()
-        if err := fn(); err != nil {
-          g.Errs[id] = err
-          g.once.Do(func() {
-            // 只执行一次
-            if g.cancel != nil {
-              g.cancel()
-            }
-          })
-        }
-    }()
+	g.wg.Add(1)
+	go func() {
+		id := id
+		defer g.wg.Done()
+		if err := fn(); err != nil {
+			// 必须加锁 不然 fatal error: concurrent map writes
+			// 写锁
+			g.rwm.Lock()
+			g.Errs[id] = err
+			g.rwm.Unlock()
+			g.once.Do(func() {
+				// 只执行一次
+				if g.cancel != nil {
+					g.cancel()
+				}
+			})
+		}
+	}()
 }
 
 ```
