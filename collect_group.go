@@ -67,8 +67,5 @@ func (g *Group) Wait() bool {
 // 并且没有发送错误的时候在
 // 会发生无法退出的情况 使用通过heartBeat来解决
 func heartBeat(g *Group) {
-	// 只执行一次防止重复执行
-	g.once.Do(func() {
-		g.Wait()
-	})
+	g.Wait()
 }
