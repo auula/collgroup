@@ -21,10 +21,11 @@ Group 是第一个的 collection 结构体，他有3个函数`Go`和`Wait`、`Wi
 
 // Group collection group
 type Group struct {
-    cancel func()
-    wg     sync.WaitGroup
-    once   sync.Once
-    errs   map[string]error
+	cancel func()
+	wg     sync.WaitGroup
+	once   sync.Once
+	rwm    sync.RWMutex
+	Errs   map[string]error
 }
 
 ```
