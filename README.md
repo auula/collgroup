@@ -59,13 +59,12 @@ Wait Group 等待函数所有Go函数执行完毕
 
 ```go
 func (g *Group) Wait() bool {
-    g.wg.Wait()
-    if g.cancel != nil {
-      g.cancel()
-    }
-    return g.errs != nil
+	g.wg.Wait()
+	if g.cancel != nil {
+		g.cancel()
+	}
+	return len(g.Errs) > 0
 }
-
 ```
 
  WithContext 返回一个 Group 和 ctx
