@@ -80,7 +80,7 @@ func WithContext(ctx context.Context) (*Group, context.Context) {
 }
 ```
 
-## 应用案例
+## 应用案例1
 我们在执行多个任务的时候，启动了多个协程，但是我们不能确定这些协程在运行的时候会不会出现问题，而出现了什么样的问题，怎么获取到`error`消息，现在我们通过`collectGroup`就可以实现了。
 
 ```go
@@ -140,4 +140,62 @@ output
 --- PASS: TestCollGroup (4.00s)
 PASS
 ok      github.com/higker/collgroup     4.012s
+```
+
+## 应用案例2
+
+```go
+
+func TestWithContext(t *testing.T) {
+
+	// 创建一个errGroup
+	group, ctx := WithContext(context.Background())
+	// 模拟多任务
+	tasks := []task{
+		func() error {
+			time.Sleep(4 * time.Second)
+			t.Log("向订单表加入消息....")
+			return nil
+		},
+		func() error {
+			time.Sleep(2 * time.Second)
+			t.Log("更新库存消息....")
+			return nil
+		},
+		func() error {
+			time.Sleep(3 * time.Second)
+			t.Log("发送用户通知.....")
+			return nil
+		},
+		// 出错任务
+		func() error {
+			time.Sleep(3 * time.Second)
+			return errors.New("发起用户余额扣款，发生错误")
+		},
+	}
+
+	for i, t := range tasks {
+		group.Go(fmt.Sprintf("go-id-%s", cast.ToString(i)), t)
+	}
+	// 监听任务出错了一个就返回
+
+	<-ctx.Done()
+	t.Log("group exit...任务出，拿到错误消息回滚业务....")
+	t.Log("Get errors: ", group.Errs)
+
+}
+
+```
+
+output
+
+```bash
+=== RUN   TestWithContext
+    collect_group_test.go:77: 更新库存消息....
+    collect_group_test.go:82: 发送用户通知.....
+    collect_group_test.go:98: group exit...任务出，拿到错误消息回滚业务....
+    collect_group_test.go:99: Get errors:  map[go-id-3:发起用户余额扣款，发生错误]
+--- PASS: TestWithContext (3.01s)
+PASS
+ok      github.com/higker/collgroup     3.013s
 ```
