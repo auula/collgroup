@@ -21,10 +21,11 @@ Group 是第一个的 collection 结构体，他有3个函数`Go`和`Wait`、`Wi
 
 // Group collection group
 type Group struct {
-    cancel func()
-    wg     sync.WaitGroup
-    once   sync.Once
-    errs   map[string]error
+	cancel func()
+	wg     sync.WaitGroup
+	once   sync.Once
+	rwm    sync.RWMutex
+	Errs   map[string]error
 }
 
 ```
@@ -33,20 +34,24 @@ Go 函数 可以帮你起一个协程运行你的函数，需要你传一个`gor
 
 ```go
 func (g *Group) Go(id string, fn func() error) {
-    g.wg.Add(1)
-    go func() {
-        id := id
-        defer g.wg.Done()
-        if err := fn(); err != nil {
-          g.Errs[id] = err
-          g.once.Do(func() {
-            // 只执行一次
-            if g.cancel != nil {
-              g.cancel()
-            }
-          })
-        }
-    }()
+	g.wg.Add(1)
+	go func() {
+		id := id
+		defer g.wg.Done()
+		if err := fn(); err != nil {
+			// 必须加锁 不然 fatal error: concurrent map writes
+			// 写锁
+			g.rwm.Lock()
+			g.Errs[id] = err
+			g.rwm.Unlock()
+			g.once.Do(func() {
+				// 只执行一次
+				if g.cancel != nil {
+					g.cancel()
+				}
+			})
+		}
+	}()
 }
 
 ```
@@ -54,13 +59,12 @@ Wait Group 等待函数所有Go函数执行完毕
 
 ```go
 func (g *Group) Wait() bool {
-    g.wg.Wait()
-    if g.cancel != nil {
-      g.cancel()
-    }
-    return g.errs != nil
+	g.wg.Wait()
+	if g.cancel != nil {
+		g.cancel()
+	}
+	return len(g.Errs) > 0
 }
-
 ```
 
  WithContext 返回一个 Group 和 ctx
@@ -84,44 +88,44 @@ type task func() error
 
 func TestCollGroup(t *testing.T) {
 
-    // 创建一个collectGroup 也可以使用WithContext函数创建
-    g := new(Group)
-    // 模拟多任务
-    tasks := []task{
-        func() error {
-          time.Sleep(4 * time.Second)
-          fmt.Println("task 1 done.")
-          return nil
-        },
-        func() error {
-          time.Sleep(2 * time.Second)
-          fmt.Println("task 2 done.")
-          return nil
-        },
-        func() error {
-          time.Sleep(3 * time.Second)
-          fmt.Println("task 3 done.")
-          return nil
-        },
-        // 出错任务
-        func() error {
-          time.Sleep(3 * time.Second)
-          return errors.New("task 4 running error")
-        },
-        func() error {
-          time.Sleep(3 * time.Second)
-          return errors.New("task 5 running error")
-        },
-    }
-    g.Errs = make(map[string]error, cap(tasks))
-    for i, t := range tasks {
-        g.Go(fmt.Sprintf("go-id-%s", cast.ToString(i)), t)
-    }
-    if g.Wait() {
-        fmt.Println("Get errors: ", g.Errs)
-    } else {
-        fmt.Println("Get all num successfully!")
-    }
+	// 创建一个collectGroup
+	g := new(Group)
+	// 模拟多任务
+	tasks := []task{
+		func() error {
+			time.Sleep(4 * time.Second)
+			fmt.Println("task 1 done.")
+			return nil
+		},
+		func() error {
+			time.Sleep(2 * time.Second)
+			fmt.Println("task 2 done.")
+			return nil
+		},
+		func() error {
+			time.Sleep(3 * time.Second)
+			fmt.Println("task 3 done.")
+			return nil
+		},
+		// 出错任务
+		func() error {
+			time.Sleep(3 * time.Second)
+			return errors.New("task 4 running error")
+		},
+		func() error {
+			time.Sleep(3 * time.Second)
+			return errors.New("task 5 running error")
+		},
+	}
+	g.Errs = make(map[string]error, cap(tasks))
+	for i, t := range tasks {
+		g.Go(fmt.Sprintf("go-id-%s", cast.ToString(i)), t)
+	}
+	if g.Wait() {
+		fmt.Println("Get errors: ", g.Errs)
+	} else {
+		fmt.Println("run all task  successfully!")
+	}
 }
 ```
 
@@ -129,11 +133,11 @@ output
 
 ```bash
 === RUN   TestCollGroup
-task 2 done.
-task 3 done.
-task 1 done.
-Get errors:  map[go-id-3:task 4 running error go-id-4:task 5 running error]
+    collect_group_test.go:34: task 2 done.
+    collect_group_test.go:39: task 3 done.
+    collect_group_test.go:29: task 1 done.
+    collect_group_test.go:57: Get errors:  map[go-id-3:task 4 running error go-id-4:task 5 running error]
 --- PASS: TestCollGroup (4.00s)
 PASS
-ok      github.com/higker/collgroup     4.010s
+ok      github.com/higker/collgroup     4.012s
 ```
