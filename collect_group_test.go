@@ -82,10 +82,6 @@ func TestWithContext(t *testing.T) {
 			t.Log("发送用户通知.....")
 			return nil
 		},
-		func() error {
-			time.Sleep(4 * time.Second)
-			return errors.New("用户扣款发送错误")
-		},
 	}
 
 	for i, t := range tasks {
@@ -95,7 +91,7 @@ func TestWithContext(t *testing.T) {
 	// 监听任务出错了一个就返回
 	<-ctx.Done()
 	if len(group.Errs) > 0 {
-		t.Log("group exit...任务出，拿到错误消息回滚业务....")
+		t.Log("group exit...任务出错，拿到错误消息回滚业务....")
 		t.Log("Get errors: ", group.Errs)
 	}
 }
