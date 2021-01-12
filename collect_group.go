@@ -64,8 +64,11 @@ func (g *Group) Wait() bool {
 }
 
 // 监听心跳 这里是指的是 group有协程在运行
-// 并且没有发送错误的时候在外部只调用<- ctx.Done()
+// 并且没有发送错误的时候在
 // 会发生无法退出的情况 使用通过heartBeat来解决
 func heartBeat(g *Group) {
-	g.Wait()
+	// 只执行一次防止重复执行
+	g.once.Do(func() {
+		g.Wait()
+	})
 }
