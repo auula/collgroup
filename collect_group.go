@@ -33,6 +33,7 @@ func WithContext(ctx context.Context) (*Group, context.Context) {
 
 // Go 函数 可以帮你起一个协程运行你的函数
 func (g *Group) Go(id string, fn func() error) {
+	go heartBeat(g)
 	g.wg.Add(1)
 	go func() {
 		id := id
@@ -60,4 +61,11 @@ func (g *Group) Wait() bool {
 		g.cancel()
 	}
 	return len(g.Errs) > 0
+}
+
+// 监听心跳 这里是指的是 group有协程在运行
+// 并且没有发送错误的时候在外部只调用<- ctx.Done()
+// 会发生无法退出的情况 使用通过heartBeat来解决
+func heartBeat(g *Group) {
+	g.Wait()
 }

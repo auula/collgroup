@@ -145,7 +145,6 @@ ok      github.com/higker/collgroup     4.012s
 ## 应用案例2
 
 ```go
-
 func TestWithContext(t *testing.T) {
 
 	// 创建一个errGroup
@@ -167,22 +166,22 @@ func TestWithContext(t *testing.T) {
 			t.Log("发送用户通知.....")
 			return nil
 		},
-		// 出错任务
 		func() error {
-			time.Sleep(3 * time.Second)
-			return errors.New("发起用户余额扣款，发生错误")
+			time.Sleep(4 * time.Second)
+			return errors.New("用户扣款发送错误")
 		},
 	}
 
 	for i, t := range tasks {
 		group.Go(fmt.Sprintf("go-id-%s", cast.ToString(i)), t)
 	}
+	// group.Wait()
 	// 监听任务出错了一个就返回
-
 	<-ctx.Done()
-	t.Log("group exit...任务出，拿到错误消息回滚业务....")
-	t.Log("Get errors: ", group.Errs)
-
+	if len(group.Errs) > 0 {
+		t.Log("group exit...任务出，拿到错误消息回滚业务....")
+		t.Log("Get errors: ", group.Errs)
+	}
 }
 
 ```
@@ -190,12 +189,21 @@ func TestWithContext(t *testing.T) {
 output
 
 ```bash
+go test -v
+
+=== RUN   TestCollGroup
+    collect_group_test.go:35: task 2 done.
+    collect_group_test.go:40: task 3 done.
+    collect_group_test.go:30: task 1 done.
+    collect_group_test.go:58: Get errors:  map[go-id-3:task 4 running error go-id-4:task 5 running error]
+--- PASS: TestCollGroup (4.00s)
 === RUN   TestWithContext
     collect_group_test.go:77: 更新库存消息....
     collect_group_test.go:82: 发送用户通知.....
+    collect_group_test.go:72: 向订单表加入消息....
     collect_group_test.go:98: group exit...任务出，拿到错误消息回滚业务....
-    collect_group_test.go:99: Get errors:  map[go-id-3:发起用户余额扣款，发生错误]
---- PASS: TestWithContext (3.01s)
+    collect_group_test.go:99: Get errors:  map[go-id-3:用户扣款发送错误]
+--- PASS: TestWithContext (4.01s)
 PASS
-ok      github.com/higker/collgroup     3.013s
+ok      github.com/higker/collgroup     8.013s
 ```
