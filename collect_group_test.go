@@ -11,6 +11,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"runtime/pprof"
 	"testing"
 	"time"
 
@@ -62,7 +64,32 @@ func TestCollGroup(t *testing.T) {
 }
 
 func TestWithContext(t *testing.T) {
+	if true {
+		file, err := os.Create("./cpu.pprof")
+		if err != nil {
+			fmt.Printf("create cpu pprof failed, err:%v\n", err)
+			return
+		}
+		pprof.StartCPUProfile(file)
+		defer pprof.StopCPUProfile()
+	}
+	for i := 0; i < 8; i++ {
+		go Test(t)
+	}
+	time.Sleep(5 * time.Second)
+	if true {
+		file, err := os.Create("./mem.pprof")
+		if err != nil {
+			fmt.Printf("create mem pprof failed, err:%v\n", err)
+			return
+		}
+		pprof.WriteHeapProfile(file)
+		file.Close()
+	}
 
+}
+
+func Test(t *testing.T) {
 	// 创建一个errGroup
 	group, ctx := WithContext(context.Background())
 	// 模拟多任务
