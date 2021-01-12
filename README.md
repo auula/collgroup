@@ -133,11 +133,11 @@ output
 
 ```bash
 === RUN   TestCollGroup
-task 2 done.
-task 3 done.
-task 1 done.
-Get errors:  map[go-id-3:task 4 running error go-id-4:task 5 running error]
+    collect_group_test.go:34: task 2 done.
+    collect_group_test.go:39: task 3 done.
+    collect_group_test.go:29: task 1 done.
+    collect_group_test.go:57: Get errors:  map[go-id-3:task 4 running error go-id-4:task 5 running error]
 --- PASS: TestCollGroup (4.00s)
 PASS
-ok      github.com/higker/collgroup     4.010s
+ok      github.com/higker/collgroup     4.012s
 ```
