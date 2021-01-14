@@ -119,4 +119,26 @@ func TestWithContext(t *testing.T) {
 		t.Log("group exit...任务出错，拿到错误消息回滚业务....")
 		t.Log("Get errors: ", group.Errs)
 	}
+	t.Log("程序正常完成.")
 }
+
+// func Benchmark(b *testing.B) {
+
+// 	// 创建一个collectGroup
+// 	g := new(Group)
+
+// 	// benchmark test
+// 	g.Errs = make(map[string]error, b.N)
+
+// 	for i := 0; i < b.N; i++ { // b.N，测试循环次数
+// 		g.Go(fmt.Sprintf("go-id-%s", cast.ToString(i)), func() error {
+// 			// 主要是测试map在并发情况下读写
+// 			return errors.New("task running error")
+// 		})
+// 	}
+// 	if g.Wait() {
+// 		fmt.Println("Get errors:")
+// 	} else {
+// 		fmt.Println("run all task  successfully!")
+// 	}
+// }

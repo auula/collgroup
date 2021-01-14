@@ -12,6 +12,9 @@ import (
 	"sync"
 )
 
+// 修复 <-ctx.Done() 不能正常退出
+var jobs int
+
 // Group collection group
 type Group struct {
 	cancel func()
@@ -34,9 +37,10 @@ func WithContext(ctx context.Context) (*Group, context.Context) {
 // Go 函数 可以帮你起一个协程运行你的函数
 func (g *Group) Go(id string, fn func() error) {
 	g.wg.Add(1)
+	g.task()
 	go func() {
-		//id := id
 		defer g.wg.Done()
+		defer g.done()
 		if err := fn(); err != nil {
 			// 写锁必须加锁 不然 fatal error: concurrent map writes
 			g.rwm.Lock()
@@ -50,10 +54,6 @@ func (g *Group) Go(id string, fn func() error) {
 			})
 		}
 	}()
-	// heartBeat 这里是指的是 group有协程在运行
-	// 并且没有发送错误的时候在
-	// 会发生无法退出的情况 使用通过heartBeat来解决
-	go g.Wait()
 }
 
 // Wait Group 等待函数
@@ -63,4 +63,24 @@ func (g *Group) Wait() bool {
 		g.cancel()
 	}
 	return len(g.Errs) > 0
+}
+
+func (g *Group) task() {
+	g.rwm.Lock()
+	jobs++
+	g.rwm.Unlock()
+}
+
+func (g *Group) done() {
+	g.rwm.Lock()
+	jobs--
+	g.rwm.Unlock()
+	if jobs == 0 {
+		g.once.Do(func() {
+			// 只执行一次
+			if g.cancel != nil {
+				g.cancel()
+			}
+		})
+	}
 }
