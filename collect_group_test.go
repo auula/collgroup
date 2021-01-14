@@ -11,8 +11,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"runtime/pprof"
 	"testing"
 	"time"
 
@@ -63,31 +61,31 @@ func TestCollGroup(t *testing.T) {
 	}
 }
 
-func TestPprof(t *testing.T) {
-	if true {
-		file, err := os.Create("./cpu.pprof")
-		if err != nil {
-			fmt.Printf("create cpu pprof failed, err:%v\n", err)
-			return
-		}
-		pprof.StartCPUProfile(file)
-		defer pprof.StopCPUProfile()
-	}
-	for i := 0; i < 8; i++ {
-		go TestWithContext(t)
-	}
-	time.Sleep(5 * time.Second)
-	if true {
-		file, err := os.Create("./mem.pprof")
-		if err != nil {
-			fmt.Printf("create mem pprof failed, err:%v\n", err)
-			return
-		}
-		pprof.WriteHeapProfile(file)
-		file.Close()
-	}
+// func TestPprof(t *testing.T) {
+// 	if true {
+// 		file, err := os.Create("./cpu.pprof")
+// 		if err != nil {
+// 			fmt.Printf("create cpu pprof failed, err:%v\n", err)
+// 			return
+// 		}
+// 		pprof.StartCPUProfile(file)
+// 		defer pprof.StopCPUProfile()
+// 	}
+// 	for i := 0; i < 8; i++ {
+// 		go TestWithContext(t)
+// 	}
+// 	time.Sleep(5 * time.Second)
+// 	if true {
+// 		file, err := os.Create("./mem.pprof")
+// 		if err != nil {
+// 			fmt.Printf("create mem pprof failed, err:%v\n", err)
+// 			return
+// 		}
+// 		pprof.WriteHeapProfile(file)
+// 		file.Close()
+// 	}
 
-}
+// }
 
 func TestWithContext(t *testing.T) {
 	// 创建一个errGroup
@@ -95,17 +93,17 @@ func TestWithContext(t *testing.T) {
 	// 模拟多任务
 	tasks := []task{
 		func() error {
-			time.Sleep(4 * time.Second)
+			// time.Sleep(4 * time.Second)
 			t.Log("向订单表加入消息....")
 			return nil
 		},
 		func() error {
-			time.Sleep(2 * time.Second)
+			// time.Sleep(2 * time.Second)
 			t.Log("更新库存消息....")
 			return nil
 		},
 		func() error {
-			time.Sleep(3 * time.Second)
+			// time.Sleep(3 * time.Second)
 			t.Log("发送用户通知.....")
 			return nil
 		},
