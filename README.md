@@ -147,7 +147,7 @@ ok      github.com/higker/collgroup     4.012s
 ```
 
 ## 应用案例2
-
+本案例是检测到一个错误就返回了，使用`context`完成
 ```go
 func TestWithContext(t *testing.T) {
 
