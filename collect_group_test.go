@@ -93,19 +93,23 @@ func TestWithContext(t *testing.T) {
 	// 模拟多任务
 	tasks := []task{
 		func() error {
-			// time.Sleep(4 * time.Second)
+			time.Sleep(4 * time.Second)
 			t.Log("向订单表加入消息....")
 			return nil
 		},
 		func() error {
-			// time.Sleep(2 * time.Second)
+			time.Sleep(2 * time.Second)
 			t.Log("更新库存消息....")
 			return nil
 		},
 		func() error {
-			// time.Sleep(3 * time.Second)
+			time.Sleep(3 * time.Second)
 			t.Log("发送用户通知.....")
 			return nil
+		},
+		func() error {
+			time.Sleep(2 * time.Second)
+			return errors.New("发送错误")
 		},
 	}
 
